@@ -1,25 +1,40 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Steps Activity over a period of 2 months"
+author: "Hussain"
+date: "Sunday, December 14, 2014"
 ---
 
 
-## Loading and preprocessing the data
+Reading the Activity Data
+```{r, }
+data<-read.csv("activity.csv")
 
+```
 
+Number of steps taken every day (Plot)
 
-## What is mean total number of steps taken per day?
+```{r, echo=TRUE}
+ad<-aggregate(steps~date ,data=data, FUN=sum)
+hist(ad$steps)
+```
 
+Mean, Median Steps taken every day
+```{r, echo=TRUE}
+meana<-mean(ad$steps)
+median<-median(ad$steps)
+data.frame(mean=meana, median)
+````
 
+Average daily steps taken at 5-minute intervals (plot)
+```{r, echo=TRUE}
+adt<-aggregate(steps~interval ,data=data, FUN=mean)
+plot(adt$interval, adt$steps, type="l", xlab="time interval", ylab="average steps")
 
-## What is the average daily activity pattern?
+````
 
+Maximum steps taken at which 5-minute time interval
+```{r, echo=TRUE}
+max<-adt$interval[which(adt$steps==max(adt$steps))]
+max
+````
 
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
