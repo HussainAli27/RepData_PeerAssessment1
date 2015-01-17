@@ -5,36 +5,106 @@ date: "Sunday, December 14, 2014"
 ---
 
 
-Reading the Activity Data
-```{r, }
+
+1.Reading the Activity Data
+```{r, echo=TRUE}
 data<-read.csv("activity.csv")
 
 ```
 
-Number of steps taken every day (Plot)
-
+2.Total number of steps taken per day  
+Total number of steps taken each day (Plot)
 ```{r, echo=TRUE}
 ad<-aggregate(steps~date ,data=data, FUN=sum)
-hist(ad$steps)
+hist(ad$steps, xlab="Total Steps each day", , main="")
 ```
 
-Mean, Median Steps taken every day
+Mean and Median total number of steps taken per day
 ```{r, echo=TRUE}
 meana<-mean(ad$steps)
 median<-median(ad$steps)
 data.frame(mean=meana, median)
-````
+```
 
+  
+  
+  
+3.Average daily activity pattern  
 Average daily steps taken at 5-minute intervals (plot)
 ```{r, echo=TRUE}
 adt<-aggregate(steps~interval ,data=data, FUN=mean)
 plot(adt$interval, adt$steps, type="l", xlab="time interval", ylab="average steps")
-
-````
+```
 
 Maximum steps taken at which 5-minute time interval
 ```{r, echo=TRUE}
 max<-adt$interval[which(adt$steps==max(adt$steps))]
 max
-````
+```
+  
+  
+  
+  
+4.Imputing missing values  
+  
+Total NA rows
+```{r, echo=TRUE}
+length(data[is.na(data$steps),"steps"])
+```
 
+Strategy for filling NAs: 
+Replace steps on the NA Interval by mean of steps on that interval  
+```{r, echo=TRUE}
+dta<-data
+
+return_impute_value <- function(inter){
+    
+return(mean(dta[dta$interval==inter, "steps"], na.rm=T))
+}
+
+dta[is.na(dta$steps),"steps"]<-unlist(lapply(dta[is.na(dta$steps),"interval"], return_impute_value), recursive =T)
+
+```
+  
+Histogram of total steps per day after imputing NAs and  
+effect on Mean and Median
+
+```{r, echo=TRUE}
+ad1<-aggregate(steps~date ,data=dta, FUN=sum)
+hist(ad1$steps, xlab="Total Steps each day", , main="")
+```
+
+  
+```{r, echo=TRUE}
+meana<-mean(ad1$steps)
+median<-median(ad1$steps)
+data.frame(mean=meana, median)
+```
+Only a slight visible change occurs in median because we had already NAs removed when using the aggregate function.  
+This shows that our imputation is good!  
+  
+  
+  
+  Total Steps before and after Imputed values. 
+```{r, echo=TRUE}
+data.frame(Total_Steps_With_NAs=sum(ad$steps), Total_Steps_with_Imputed_Values=sum(ad1$steps))
+```
+
+5. Patterns between weekdays and weekends  
+Creating a new factor variable showing weekdays or weekends and add to data frame
+```{r, echo=TRUE, results='hide'}
+new_data<-data
+days<-weekdays(as.Date(dta$date))
+days[days!="Saturday" & days!="Sunday"]="weekday"
+days[days=="Saturday" | days=="Sunday"]="weekend"
+factor(days)
+new_data$day<-days
+```
+  
+  Ploting the trend on different days(Weekdays, Weekends): Average daily steps taken at 5-minute intervals
+```{r, echo=TRUE}
+new_adt <- aggregate(steps ~ interval + day, data = new_data, mean)
+ggplot(new_adt, aes(interval, steps)) + facet_grid(day ~ .) + geom_line() +  xlab("5-minute interval") + ylab("Number of steps")
+```
+  
+  It can be observed that on weekdays the Steps are more at early time intervals (morning). And in the middle of the day time intervals activity is more at weekends.
